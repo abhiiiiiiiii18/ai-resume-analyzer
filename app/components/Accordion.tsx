@@ -55,7 +55,7 @@ export const Accordion: React.FC<AccordionProps> = ({
         <AccordionContext.Provider
             value={{ activeItems, toggleItem, isItemActive }}
         >
-            <div className={`space-y-2 ${className}`}>{children}</div>
+            <div className={`space-y-4 ${className}`}>{children}</div>
         </AccordionContext.Provider>
     );
 };
@@ -71,8 +71,17 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({
                                                                 children,
                                                                 className = "",
                                                             }) => {
+    const { isItemActive } = useAccordion();
+    const isActive = isItemActive(id);
+
     return (
-        <div className={`overflow-hidden border-b border-gray-200 ${className}`}>
+        <div className={cn(
+            "group overflow-hidden transition-all duration-500 ease-in-out",
+            isActive 
+                ? "shadow-xl scale-[1.01] border-2 border-blue-200" 
+                : "shadow-lg hover:shadow-xl border border-gray-200 hover:border-gray-300",
+            className
+        )}>
             {children}
         </div>
     );
@@ -97,22 +106,39 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
     const isActive = isItemActive(itemId);
 
     const defaultIcon = (
-        <svg
-            className={cn("w-5 h-5 transition-transform duration-200", {
-                "rotate-180": isActive,
-            })}
-            fill="none"
-            stroke="#98A2B3"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-            />
-        </svg>
+        <div className="relative">
+            {/* Background glow effect */}
+            <div className={cn(
+                "absolute inset-0 rounded-full blur-md opacity-0 transition-opacity duration-300",
+                isActive ? "opacity-30 bg-blue-400" : "group-hover:opacity-20 group-hover:bg-purple-400"
+            )}></div>
+            
+            {/* Icon container */}
+            <div className={cn(
+                "relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
+                isActive 
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-blue-200" 
+                    : "bg-white text-gray-600 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-purple-50 group-hover:text-blue-600"
+            )}>
+                <svg
+                    className={cn("w-5 h-5 transition-all duration-300", {
+                        "rotate-180 scale-110": isActive,
+                        "group-hover:scale-110": !isActive
+                    })}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M19 9l-7 7-7-7"
+                    />
+                </svg>
+            </div>
+        </div>
     );
 
     const handleClick = () => {
@@ -122,18 +148,35 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
     return (
         <button
             onClick={handleClick}
-            className={`
-        w-full px-4 py-3 text-left
-        focus:outline-none
-        transition-colors duration-200 flex items-center justify-between cursor-pointer
-        ${className}
-      `}
+            className={cn(
+                "w-full px-8 py-6 text-left focus:outline-none transition-all duration-300 flex items-center justify-between cursor-pointer relative overflow-hidden group",
+                isActive 
+                    ? "bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50" 
+                    : "bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50",
+                className
+            )}
         >
-            <div className="flex items-center space-x-3">
+            {/* Animated background effect */}
+            <div className={cn(
+                "absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 opacity-0 transition-opacity duration-300",
+                isActive ? "opacity-100" : "group-hover:opacity-50"
+            )}></div>
+            
+            <div className="relative z-10 flex items-center space-x-4 flex-1">
                 {iconPosition === "left" && (icon || defaultIcon)}
-                <div className="flex-1">{children}</div>
+                <div className="flex-1 min-w-0">
+                    {children}
+                </div>
             </div>
-            {iconPosition === "right" && (icon || defaultIcon)}
+            
+            {iconPosition === "right" && (
+                <div className="relative z-10 ml-4">
+                    {icon || defaultIcon}
+                </div>
+            )}
+            
+            {/* Ripple effect on click */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-active:opacity-10 transition-opacity duration-150"></div>
         </button>
     );
 };
@@ -154,13 +197,20 @@ export const AccordionContent: React.FC<AccordionContentProps> = ({
 
     return (
         <div
-            className={`
-        overflow-hidden transition-all duration-300 ease-in-out
-        ${isActive ? "max-h-fit opacity-100" : "max-h-0 opacity-0"}
-        ${className}
-      `}
+            className={cn(
+                "overflow-hidden transition-all duration-500 ease-in-out",
+                isActive 
+                    ? "max-h-[2000px] opacity-100" 
+                    : "max-h-0 opacity-0",
+                className
+            )}
         >
-            <div className="px-4 py-3 ">{children}</div>
+            <div className={cn(
+                "transition-all duration-300",
+                isActive ? "transform translate-y-0" : "transform -translate-y-4"
+            )}>
+                {children}
+            </div>
         </div>
     );
 };
